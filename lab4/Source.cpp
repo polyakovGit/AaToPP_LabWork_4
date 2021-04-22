@@ -72,70 +72,75 @@ void Task1Critical(double** arr, long long N, int k, double& avg) {
 }
 
 int main() {
-	const long long N = 10000;
-	double serialAvg = 0;
-	clock_t start, end;
-	printf("%lld\n", N);
-	double** arr = new double* [N];
-	for (int i = 0; i < N; ++i)
-		arr[i] = new double[N];
-	start = clock();
-	for (long long i = 0; i < N; ++i)
-		for (long long j = 0; j < N; ++j) {
-			arr[i][j] = sin(i) + cos(j);
-			serialAvg += arr[i][j];
-		}
-	serialAvg /= N * N;
-	end = clock();
-	printf("SERIAL value: %f, time:%f\n", serialAvg, (double)(end - start) / CLOCKS_PER_SEC);
+	//const long long N = 10000;
+	//double serialAvg = 0;
+	//clock_t start, end;
+	//printf("%lld\n", N);
+	//double** arr = new double* [N];
+	//for (int i = 0; i < N; ++i)
+	//	arr[i] = new double[N];
+	//start = clock();
+	//for (long long i = 0; i < N; ++i)
+	//	for (long long j = 0; j < N; ++j) {
+	//		arr[i][j] = sin(i) + cos(j);
+	//		serialAvg += arr[i][j];
+	//	}
+	//serialAvg /= N * N;
+	//end = clock();
+	//printf("SERIAL value: %f, time:%f\n", serialAvg, (double)(end - start) / CLOCKS_PER_SEC);
 
-	Func arrFunc[4] = { {Task1ParallelFor,"Task1ParallelFor"},{Task1Reduction,"Task1Reduction"},
-		{Task1Atomic,"Task1Atomic"}, {Task1Critical,"Task1Critical"} };
-	//void((*ptrFunc[4]))(double**, long long, int, double&);
-	//ptrFunc[0] = Task1ParallelFor;
-	//ptrFunc[1] = Task1Reduction;
-	//ptrFunc[2] = Task1Atomic;
-	//ptrFunc[3] = Task1Critical;
-	const int arrThreadSize = 3;
-	int arrThreads[arrThreadSize] = { 2,4,8 };
-	for (int k = 0; k < arrThreadSize; ++k)
-	{
-		for (int i = 0; i < 4; ++i) {
-			double time = 0;
-			for (int j = 0; j < 1; ++j) {
-				double parallelAvg=0;
-				start = clock();
-				arrFunc[i].ptrFunc(arr, N, arrThreads[k], parallelAvg);
-				//ptrFunc[i](arr, N, arrThreads[k], parallelAvg);
-				end = clock();
-				time += (double)(end - start) / CLOCKS_PER_SEC;
-				printf("%f ", parallelAvg);
-			}
-			time /= 1;
-			printf("Func: %s, average time:%f threads: %d\n", arrFunc[i].name.c_str(),time, arrThreads[k]);
-		}
+	//Func arrFunc[4] = { {Task1ParallelFor,"Task1ParallelFor"},{Task1Reduction,"Task1Reduction"},
+	//	{Task1Atomic,"Task1Atomic"}, {Task1Critical,"Task1Critical"} };
+	//const int arrThreadSize = 3;
+	//int arrThreads[arrThreadSize] = { 2,4,8 };
+	//for (int k = 0; k < arrThreadSize; ++k)
+	//{
+	//	for (int i = 0; i < 1; ++i) {
+	//		double time = 0;
+	//		for (int j = 0; j < 1; ++j) {
+	//			double parallelAvg = 0;
+	//			start = clock();
+	//			arrFunc[i].ptrFunc(arr, N, arrThreads[k], parallelAvg);
+	//			//ptrFunc[i](arr, N, arrThreads[k], parallelAvg);
+	//			end = clock();
+	//			time += (double)(end - start) / CLOCKS_PER_SEC;
+	//			printf("%f ", parallelAvg);
+	//		}
+	//		time /= 1;
+	//		printf("Func: %s, average time:%f threads: %d\n", arrFunc[i].name.c_str(), time, arrThreads[k]);
+	//	}
+	//}
 
-
-		//double parallelAvg = 0;
-		//start = clock();
-		//Task1ParallelFor(arr, N, arrThreads[k], parallelAvg);
-		//end = clock();
-		//printf("Task1ParallelFor value: %f, time: %f, threads: %d\n", parallelAvg, (double)(end - start) / CLOCKS_PER_SEC, arrThreads[k]);
-		//parallelAvg = 0;
-		//start = clock();
-		//Task1Reduction(arr, N, arrThreads[k], parallelAvg);
-		//end = clock();
-		//printf("Task1Reduction value: %f, time: %f, threads: %d\n", parallelAvg, (double)(end - start) / CLOCKS_PER_SEC, arrThreads[k]);
-		//parallelAvg = 0;
-		//start = clock();
-		//Task1Atomic(arr, N, arrThreads[k], parallelAvg);
-		//end = clock();
-		//printf("Task1Atomic value: %f, time: %f, threads: %d\n", parallelAvg, (double)(end - start) / CLOCKS_PER_SEC, arrThreads[k]);
-		//parallelAvg = 0;
-		//start = clock();
-		//Task1Critical(arr, N, arrThreads[k], parallelAvg);
-		//end = clock();
-		//printf("Task1Critical value: %f, time: %f, threads: %d\n", parallelAvg, (double)(end - start) / CLOCKS_PER_SEC, arrThreads[k]);
+	const int SIZE = 5;
+	int** arrMulA = new int* [SIZE];
+	int** arrMulB = new int* [SIZE];
+	int** arrMulC = new int* [SIZE];
+	for (int i = 0; i < SIZE; ++i) {
+		arrMulA[i] = new int[SIZE];
+		arrMulB[i] = new int[SIZE];
+		arrMulC[i] = new int[SIZE];
 	}
+
+	for (int i = 0; i < SIZE; ++i)
+		for (int j = 0; j < SIZE; ++j)
+		{
+			arrMulA[i][j] = arrMulB[i][j] = 2;
+		}
+
+#pragma omp parallel for
+	for (int i = 0; i < SIZE; ++i) {
+		for (int j = 0; j < SIZE; ++j) {
+			int temp = 0;
+			for (int k = 0; k < SIZE; ++k)
+				temp += arrMulA[i][k] * arrMulB[k][j];
+			arrMulC[i][j] = temp;
+		}
+	}
+	for (int i = 0; i < SIZE; ++i) {
+		for (int j = 0; j < SIZE; ++j)
+			printf("%d ", arrMulC[i][j]);
+		printf("\n");
+	}
+
 	return 0;
 }
