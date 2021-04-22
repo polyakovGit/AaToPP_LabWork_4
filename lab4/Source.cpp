@@ -4,8 +4,7 @@
 #include <ctime>
 
 void Task1ParallelFor(double** arr, long long N, int k, double& avg) {
-	double sum;
-#pragma omp parallel for num_threads(k)
+#pragma omp parallel for num_threads(k) 
 	for (long long i = 0; i < N; ++i) {
 		double sum = 0;
 		for (long long j = 0; j < N; ++j) {
@@ -21,15 +20,42 @@ void Task1Reduction(double** arr, long long N, int k, double& avg) {
 	double sum = 0;
 #pragma omp parallel num_threads(k) reduction(+:sum)
 	{
-		int currThread = omp_get_thread_num();
-		for (long long i = currThread*N/k; i < (currThread+1)*N/k; ++i) {
-			for (long long j = 0; j <  N; ++j) {
+		long long currThread = omp_get_thread_num();
+		for (long long i = currThread * N / k; i < (currThread + 1) * N / k; ++i) {
+			for (long long j = 0; j < N; ++j) {
 				arr[i][j] = sin(i) + cos(j);
 				sum += arr[i][j];
 			}
 		}
 	}
-	avg = sum/(N*N);
+	avg = sum / (N * N);
+}
+
+
+double arrayFillAndSum(double** arr, long long currI, long long currN, long long N) {
+	double sum = 0;
+	for (long long i = currI; i < currN; ++i)
+		for (long long j = 0; j < N; ++j) {
+			arr[i][j] = sin(i) + cos(j);
+			sum += arr[i][j];
+		}
+	return sum;
+}
+
+void Task1Atomic(double** arr, long long N, int k, double& avg) {
+	double sum = 0;
+#pragma omp parallel num_threads(k)
+	{
+		long long currThread = omp_get_thread_num();
+		for (long long i = currThread * N / k; i < (currThread + 1) * N / k; ++i) {
+			for (long long j = 0; j < N; ++j) {
+				arr[i][j] = sin(i) + cos(j);
+#pragma omp atomic
+				sum += arr[i][j];//arrayFillAndSum(arr, currThread * N / k, (currThread+1) * N / k, N);
+			}
+			avg = sum / (N * N);
+		}
+	}
 }
 
 int main() {
@@ -59,11 +85,16 @@ int main() {
 		//Task1ParallelFor(arr, N, arrThreads[k], parallelAvg);
 		//end = clock();
 		//printf("Task1ParallelFor value: %f, time: %f, threads: %d\n", parallelAvg, (double)(end - start) / CLOCKS_PER_SEC, arrThreads[k]);
-		parallelAvg = 0;
+		//parallelAvg = 0;
 		start = clock();
 		Task1Reduction(arr, N, arrThreads[k], parallelAvg);
 		end = clock();
 		printf("Task1Reduction value: %f, time: %f, threads: %d\n", parallelAvg, (double)(end - start) / CLOCKS_PER_SEC, arrThreads[k]);
+		//parallelAvg = 0;
+		//start = clock();
+		//Task1Atomic(arr, N, arrThreads[k], parallelAvg);
+		//end = clock();
+		//printf("Task1Atomic value: %f, time: %f, threads: %d\n", parallelAvg, (double)(end - start) / CLOCKS_PER_SEC, arrThreads[k]);
 	}
 	return 0;
 }
