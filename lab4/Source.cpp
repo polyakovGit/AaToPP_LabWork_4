@@ -73,78 +73,111 @@ void Task1Critical(double** arr, long long N, int k, double& avg) {
 	avg = sum / (N * N);
 }
 
+void ParallelMul(int** arrMulA, int** arrMulB, int** arrMulC, int n, int numThreads) {
+#pragma omp parallel for num_threads(numThreads) schedule(dynamic,1)
+	for (int i = 0; i < n; ++i) {
+		for (int j = 0; j < n; ++j) {
+			int temp = 0;
+			for (int k = 0; k < n; ++k)
+				temp += arrMulA[i][k] * arrMulB[k][j];
+			arrMulC[i][j] = temp;
+		}
+	}
+}
+
+void FillArrays(int** arrMulA, int** arrMulB, int n) {
+	for (int i = 0; i < n; ++i)
+		for (int j = 0; j < n; ++j)
+		{
+			arrMulA[i][j] = 2;
+			arrMulB[i][j] = 2;
+		}
+}
+
 int main() {
-	const long long N = 100;
+	const long long N = 10;
 	double serialAvg = 0;
 	clock_t start, end;
-	printf("%lld\n", N);
+	//printf("%lld\n", N);
 	double** arr = new double* [N];
 	for (int i = 0; i < N; ++i)
 		arr[i] = new double[N];
-	start = clock();
-	for (long long i = 0; i < N; ++i)
-		for (long long j = 0; j < N; ++j) {
-			arr[i][j] = sin(i) + cos(j);
-			serialAvg += arr[i][j];
-		}
-	serialAvg /= N * N;
-	end = clock();
-	printf("SERIAL value: %f, time:%f\n", serialAvg, (double)(end - start) / CLOCKS_PER_SEC);
+	//start = clock();
+	//for (long long i = 0; i < N; ++i)
+	//	for (long long j = 0; j < N; ++j) {
+	//		arr[i][j] = sin(i) + cos(j);
+	//		serialAvg += arr[i][j];
+	//	}
+	//serialAvg /= N * N;
+	//end = clock();
+	//printf("SERIAL value: %f, time:%f\n", serialAvg, (double)(end - start) / CLOCKS_PER_SEC);
 
-	const int arrFuncSize = 4;
-	Func arrFunc[arrFuncSize] = { {Task1ParallelFor,"Task1ParallelFor"},{Task1Reduction,"Task1Reduction"},
-		{Task1Atomic,"Task1Atomic"}, {Task1Critical,"Task1Critical"} };
-	const int arrThreadSize = 3;
-	int arrThreads[arrThreadSize] = { 2,4,8 };
+	//const int arrFuncSize = 4;
+	//Func arrFunc[arrFuncSize] = { {Task1ParallelFor,"Task1ParallelFor"},{Task1Reduction,"Task1Reduction"},
+	//	{Task1Atomic,"Task1Atomic"}, {Task1Critical,"Task1Critical"} };
+	//const int Task1arrThreadSize = 3;
+	//int Task1arrThreads[Task1arrThreadSize] = { 2,4,8 };
 	const int timeRepeat = 20;
-	for (int k = 0; k < arrThreadSize; ++k)
-	{
-		for (int i = 0; i < arrFuncSize; ++i) {
-			double time = 0;
-			for (int j = 0; j < timeRepeat; ++j) {
-				double parallelAvg = 0;
-				start = clock();
-				arrFunc[i].ptrFunc(arr, N, arrThreads[k], parallelAvg);
-				//ptrFunc[i](arr, N, arrThreads[k], parallelAvg);
-				end = clock();
-				time += (double)(end - start) / CLOCKS_PER_SEC;
-				printf("%f\n", parallelAvg);
-			}
-			time /= timeRepeat;
-			printf("Func: %s,\taverage time: %f\tthreads: %d\n", arrFunc[i].name.c_str(), time, arrThreads[k]);
-		}
-	}
+	//for (int k = 0; k < Task1arrThreadSize; ++k)
+	//{
+	//	for (int i = 0; i < arrFuncSize; ++i) {
+	//		double time = 0;
+	//		for (int j = 0; j < timeRepeat; ++j) {
+	//			double parallelAvg = 0;
+	//			start = clock();
+	//			arrFunc[i].ptrFunc(arr, N, Task1arrThreads[k], parallelAvg);
+	//			//ptrFunc[i](arr, N, arrThreads[k], parallelAvg);
+	//			end = clock();
+	//			time += (double)(end - start) / CLOCKS_PER_SEC;
+	//			printf("%f\n", parallelAvg);
+	//		}
+	//		time /= timeRepeat;
+	//		printf("Func: %s,\taverage time: %f\tthreads: %d\n", arrFunc[i].name.c_str(), time, Task1arrThreads[k]);
+	//	}
+	//}
 
-//	const int SIZE = 5;
-//	int** arrMulA = new int* [SIZE];
-//	int** arrMulB = new int* [SIZE];
-//	int** arrMulC = new int* [SIZE];
-//	for (int i = 0; i < SIZE; ++i) {
-//		arrMulA[i] = new int[SIZE];
-//		arrMulB[i] = new int[SIZE];
-//		arrMulC[i] = new int[SIZE];
-//	}
-//
-//	for (int i = 0; i < SIZE; ++i)
-//		for (int j = 0; j < SIZE; ++j)
-//		{
-//			arrMulA[i][j] = arrMulB[i][j] = 2;
-//		}
-//
-//#pragma omp parallel for
-//	for (int i = 0; i < SIZE; ++i) {
-//		for (int j = 0; j < SIZE; ++j) {
-//			int temp = 0;
-//			for (int k = 0; k < SIZE; ++k)
-//				temp += arrMulA[i][k] * arrMulB[k][j];
-//			arrMulC[i][j] = temp;
-//		}
-//	}
-//	for (int i = 0; i < SIZE; ++i) {
-//		for (int j = 0; j < SIZE; ++j)
-//			printf("%d ", arrMulC[i][j]);
-//		printf("\n");
-//	}
+	for (int i = 0; i < N; ++i)
+		delete[]arr[i];
+	delete[] arr;
+
+	const int arrNumSize = 8;
+	int arrNums[arrNumSize] = { 100,1000,5000,10000,50000,100000,500000,1000000 };
+	const int arrThreadSize = 9;
+	int arrThread[arrThreadSize] = { 1,2,4,8,10,16,20,24,30 };
+
+	for (int k = 0; k < arrThreadSize; ++k)
+		printf("\t%d\t", arrThread[k]);
+
+	for (int i = 0; i < arrNumSize; ++i)
+	{
+		printf("\n%d\t", arrNums[i]);
+		int** arrMulA = new int* [arrNums[i]];
+		int** arrMulB = new int* [arrNums[i]];
+		int** arrMulC = new int* [arrNums[i]];
+		for (int elem = 0; elem < arrNums[i]; ++elem) {
+			arrMulA[elem] = new int[arrNums[i]];
+			arrMulB[elem] = new int[arrNums[i]];
+			arrMulC[elem] = new int[arrNums[i]];
+		}
+
+		FillArrays(arrMulA, arrMulB, arrNums[i]);
+
+		for (int k = 0; k < arrThreadSize; ++k)
+		{
+			start = clock();
+			ParallelMul(arrMulA, arrMulB, arrMulC, arrNums[i], arrThread[k]);
+			end = clock();
+			printf("%f\t",(double)(end-start)/CLOCKS_PER_SEC);
+		}
+		for (int del = 0; del < arrNums[i]; ++del) {
+			delete[] arrMulA[del];
+			delete[] arrMulB[del];
+			delete[] arrMulC[del];
+		}
+		delete[] arrMulA;
+		delete[] arrMulB;
+		delete[] arrMulC;
+	}
 
 	return 0;
 }
