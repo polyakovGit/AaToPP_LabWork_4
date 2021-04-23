@@ -3,7 +3,7 @@
 #include <cmath>
 #include <ctime>
 #include <string>
-#include <iostream>
+#include <fstream>
 
 struct Func {
 	void((*ptrFunc))(double**, long long, int, double&);
@@ -145,12 +145,18 @@ int main() {
 	const int arrThreadSize = 9;
 	int arrThread[arrThreadSize] = { 1,2,4,8,10,16,20,24,30 };
 
-	for (int k = 0; k < arrThreadSize; ++k)
+	std::ofstream OutputData;
+	OutputData.open("OutputData.csv");
+
+	for (int k = 0; k < arrThreadSize; ++k) {
 		printf("\t%d\t", arrThread[k]);
+		OutputData << ';' << arrThread[k];
+	}
 
 	for (int i = 0; i < arrNumSize; ++i)
 	{
 		printf("\n%d\t", arrNums[i]);
+		OutputData << '\n' << arrNums[i];
 		int** arrMulA = new int* [arrNums[i]];
 		int** arrMulB = new int* [arrNums[i]];
 		int** arrMulC = new int* [arrNums[i]];
@@ -164,10 +170,14 @@ int main() {
 
 		for (int k = 0; k < arrThreadSize; ++k)
 		{
+			//еще цикл для среднего времени 20 итераций взять средние квартили
 			start = clock();
 			ParallelMul(arrMulA, arrMulB, arrMulC, arrNums[i], arrThread[k]);
 			end = clock();
+			double time = (double)(end - start) / CLOCKS_PER_SEC;
+
 			printf("%f\t",(double)(end-start)/CLOCKS_PER_SEC);
+			OutputData << ';' << time;
 		}
 		for (int del = 0; del < arrNums[i]; ++del) {
 			delete[] arrMulA[del];
