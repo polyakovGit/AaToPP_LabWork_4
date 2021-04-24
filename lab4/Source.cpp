@@ -158,60 +158,60 @@ int main() {
 		delete[]arr[i];
 	delete[] arr;
 
-	//const int arrNumSize = 4;
-	//int arrNums[arrNumSize] = { 100,1000,5000,10000 };
-	//const int arrThreadSize = 9;
-	//int arrThread[arrThreadSize] = { 1,2,4,8,10,16,20,24,30 };
-	//std::ofstream OutputData;
-	//OutputData.open("OutputData.csv");
+	const int arrNumSize = 4;
+	int arrNums[arrNumSize] = { 100,1000,5000,10000 };
+	const int arrThreadSize = 9;
+	int arrThread[arrThreadSize] = { 1,2,4,8,10,16,20,24,30 };
+	std::ofstream OutputData;
+	OutputData.open("OutputData.csv");
 
-	//for (int k = 0; k < arrThreadSize; ++k) {
-	//	printf("\t%d\t", arrThread[k]);
-	//	OutputData << ';' << arrThread[k];
-	//}
+	for (int k = 0; k < arrThreadSize; ++k) {
+		printf("\t%d\t", arrThread[k]);
+		OutputData << ';' << arrThread[k];
+	}
 
-	//for (int i = 0; i < arrNumSize; ++i)
-	//{
-	//	printf("\n%d\t", arrNums[i]);
-	//	OutputData << '\n' << arrNums[i];
-	//	int** arrMulA = new int* [arrNums[i]];
-	//	int** arrMulB = new int* [arrNums[i]];
-	//	int** arrMulC = new int* [arrNums[i]];
-	//	for (int elem = 0; elem < arrNums[i]; ++elem) {
-	//		arrMulA[elem] = new int[arrNums[i]];
-	//		arrMulB[elem] = new int[arrNums[i]];
-	//		arrMulC[elem] = new int[arrNums[i]];
-	//	}
+	for (int i = 0; i < arrNumSize; ++i)
+	{
+		printf("\n%d\t", arrNums[i]);
+		OutputData << '\n' << arrNums[i];
+		int** arrMulA = new int* [arrNums[i]];
+		int** arrMulB = new int* [arrNums[i]];
+		int** arrMulC = new int* [arrNums[i]];
+		for (int elem = 0; elem < arrNums[i]; ++elem) {
+			arrMulA[elem] = new int[arrNums[i]];
+			arrMulB[elem] = new int[arrNums[i]];
+			arrMulC[elem] = new int[arrNums[i]];
+		}
 
-	//	FillArrays(arrMulA, arrMulB, arrNums[i]);
+		FillArrays(arrMulA, arrMulB, arrNums[i]);
 
-	//	for (int k = 0; k < arrThreadSize; ++k)
-	//	{
-	//		double arrTime[timeRepeat];
-	//		//еще цикл для среднего времени 20 итераций взять средние квартили
-	//		for (int t = 0; t < timeRepeat; ++t) {
-	//			start = clock();
-	//			ParallelMul(arrMulA, arrMulB, arrMulC, arrNums[i], arrThread[k]);
-	//			end = clock();
-	//			double time = (double)(end - start) / CLOCKS_PER_SEC;
-	//			arrTime[t] = time;
-	//		}
-	//		quickSort(arrTime, timeRepeat);
-	//		double avgTime = 0;
-	//		GetAvgTime(arrTime, timeRepeat,avgTime);//среднее время по средним квартилям 
+		for (int k = 0; k < arrThreadSize; ++k)
+		{
+			double arrTime[timeRepeat];
+			//еще цикл для среднего времени 20 итераций взять средние квартили
+			for (int t = 0; t < timeRepeat; ++t) {
+				start = clock();
+				ParallelMul(arrMulA, arrMulB, arrMulC, arrNums[i], arrThread[k]);
+				end = clock();
+				double time = (double)(end - start) / CLOCKS_PER_SEC;
+				arrTime[t] = time;
+			}
+			quickSort(arrTime, timeRepeat);
+			double avgTime = 0;
+			GetAvgTime(arrTime, timeRepeat,avgTime);//среднее время по средним квартилям 
 
-	//		printf("%f\t", avgTime);
-	//		OutputData << ';' << avgTime;
-	//	}
-	//	for (int del = 0; del < arrNums[i]; ++del) {
-	//		delete[] arrMulA[del];
-	//		delete[] arrMulB[del];
-	//		delete[] arrMulC[del];
-	//	}
-	//	delete[] arrMulA;
-	//	delete[] arrMulB;
-	//	delete[] arrMulC;
-	//}
+			printf("%f\t", avgTime);
+			OutputData << ';' << avgTime;
+		}
+		for (int del = 0; del < arrNums[i]; ++del) {
+			delete[] arrMulA[del];
+			delete[] arrMulB[del];
+			delete[] arrMulC[del];
+		}
+		delete[] arrMulA;
+		delete[] arrMulB;
+		delete[] arrMulC;
+	}
 
 	return 0;
 }
