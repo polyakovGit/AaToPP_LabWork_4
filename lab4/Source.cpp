@@ -94,6 +94,27 @@ void FillArrays(int** arrMulA, int** arrMulB, int n) {
 		}
 }
 
+void quickSort(double arr[], int n) {
+	int i = 0, j = n - 1;
+	double pivot = arr[n / 2];
+	do {
+		while (arr[i] < pivot)++i;
+		while (arr[j] > pivot)--j;
+		if (i <= j) {
+			std::swap(arr[i], arr[j]);
+			++i;
+			--j;
+		}
+	} while (i <= j);
+	if (n > i)quickSort(arr + i, n - i);
+	if (j > 0)quickSort(arr, j + 1);
+}
+
+void GetAvgTime(double arrTime[], int n, double& avgTime) {
+	for (int s = 5; s < 15; ++s)
+		avgTime += arrTime[s];
+	avgTime /= 10;
+}
 int main() {
 	const long long N = 10;
 	double serialAvg = 0;
@@ -140,8 +161,8 @@ int main() {
 		delete[]arr[i];
 	delete[] arr;
 
-	const int arrNumSize = 8;
-	int arrNums[arrNumSize] = { 100,1000,5000,10000,50000,100000,500000,1000000 };
+	const int arrNumSize = 2;
+	int arrNums[arrNumSize] = { 100,1000 };//5k займет для потока полчаса времени
 	const int arrThreadSize = 9;
 	int arrThread[arrThreadSize] = { 1,2,4,8,10,16,20,24,30 };
 
@@ -170,14 +191,21 @@ int main() {
 
 		for (int k = 0; k < arrThreadSize; ++k)
 		{
+			double arrTime[timeRepeat];
 			//еще цикл для среднего времени 20 итераций взять средние квартили
-			start = clock();
-			ParallelMul(arrMulA, arrMulB, arrMulC, arrNums[i], arrThread[k]);
-			end = clock();
-			double time = (double)(end - start) / CLOCKS_PER_SEC;
+			for (int t = 0; t < timeRepeat; ++t) {
+				start = clock();
+				ParallelMul(arrMulA, arrMulB, arrMulC, arrNums[i], arrThread[k]);
+				end = clock();
+				double time = (double)(end - start) / CLOCKS_PER_SEC;
+				arrTime[t] = time;
+			}
+			quickSort(arrTime, timeRepeat);
+			double avgTime = 0;
+			GetAvgTime(arrTime, timeRepeat,avgTime);//среднее время по средним квартилям 
 
-			printf("%f\t",(double)(end-start)/CLOCKS_PER_SEC);
-			OutputData << ';' << time;
+			printf("%f\t", avgTime);
+			OutputData << ';' << avgTime;
 		}
 		for (int del = 0; del < arrNums[i]; ++del) {
 			delete[] arrMulA[del];
