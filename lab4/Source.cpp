@@ -88,10 +88,7 @@ void ParallelMul(int** arrMulA, int** arrMulB, int** arrMulC, int n, int numThre
 void FillArrays(int** arrMulA, int** arrMulB, int n) {
 	for (int i = 0; i < n; ++i)
 		for (int j = 0; j < n; ++j)
-		{
-			arrMulA[i][j] = 2;
-			arrMulB[i][j] = 2;
-		}
+			arrMulA[i][j] = arrMulB[i][j] = j;//без рандома
 }
 
 void quickSort(double arr[], int n) {
@@ -115,6 +112,7 @@ void GetAvgTime(double arrTime[], int n, double& avgTime) {
 		avgTime += arrTime[s];
 	avgTime /= 10;
 }
+
 int main() {
 	const long long N = 10;
 	double serialAvg = 0;
@@ -161,11 +159,10 @@ int main() {
 		delete[]arr[i];
 	delete[] arr;
 
-	const int arrNumSize = 2;
-	int arrNums[arrNumSize] = { 100,1000 };//5k займет для потока полчаса времени
+	const int arrNumSize = 4;
+	int arrNums[arrNumSize] = { 100,1000,5000,10000 };//5k займет для потока полчаса времени
 	const int arrThreadSize = 9;
 	int arrThread[arrThreadSize] = { 1,2,4,8,10,16,20,24,30 };
-
 	std::ofstream OutputData;
 	OutputData.open("OutputData.csv");
 
