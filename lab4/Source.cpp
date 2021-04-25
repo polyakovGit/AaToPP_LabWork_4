@@ -12,6 +12,7 @@ struct Func {
 
 void Task1ParallelFor(double** arr, long long N, int k, double& avg) {
 	
+	double *arrSum = new double[k];
 #pragma omp parallel num_threads(k)
 	{
 		double sum = 0;
@@ -23,21 +24,13 @@ void Task1ParallelFor(double** arr, long long N, int k, double& avg) {
 			arr[i][j] = sin(i) + cos(j);
 			sum += arr[i][j];
 		}
-		avg += sum;
+		arrSum[omp_get_thread_num()] = sum;
 	}
+	for (int i = 0; i < k; ++i)
+		avg += arrSum[i];
+	delete[] arrSum;
 	avg /= (N * N);
 }
-//#pragma omp parallel for num_threads(k) collapse(2)
-//	for (long long i = 0; i < N; ++i) {
-//		double sum = 0;
-//		for (long long j = 0; j < N; ++j) {
-//			arr[i][j] = sin(i) + cos(j);
-//			sum += arr[i][j];
-//		}
-//		avg += sum;
-//	}
-//	avg /= (N * N);
-//}
 
 void Task1Reduction(double** arr, long long N, int k, double& avg) {
 	double sum = 0;
@@ -104,7 +97,7 @@ void ParallelMul(int** arrMulA, int** arrMulB, int** arrMulC, int n, int numThre
 void FillArrays(int** arrMulA, int** arrMulB, int n) {
 	for (int i = 0; i < n; ++i)
 		for (int j = 0; j < n; ++j)
-			arrMulA[i][j] = arrMulB[i][j] = j;//áåç ðàíäîìà
+			arrMulA[i][j] = arrMulB[i][j] = j;//no random
 }
 
 void quickSort(double arr[], int n) {
@@ -123,7 +116,7 @@ void quickSort(double arr[], int n) {
 	if (j > 0)quickSort(arr, j + 1);
 }
 
-void GetAvgTime(double arrTime[], int n, double& avgTime) {
+void GetAvgTimeQuartile(double arrTime[], double& avgTime) {
 	for (int s = 5; s < 15; ++s)
 		avgTime += arrTime[s];
 	avgTime /= 10;
@@ -155,7 +148,7 @@ int main() {
 	const int timeRepeat = 20;
 	for (int k = 0; k < Task1arrThreadSize; ++k)
 	{
-		for (int i = 0; i < 1; ++i) {
+		for (int i = 0; i < arrFuncSize; ++i) {
 			double time = 0;
 			for (int j = 0; j < timeRepeat; ++j) {
 				double parallelAvg = 0;
@@ -174,60 +167,59 @@ int main() {
 		delete[]arr[i];
 	delete[] arr;
 
-	//const int arrNumSize = 4;
-	//int arrNums[arrNumSize] = { 100,1000,5000,10000 };
-	//const int arrThreadSize = 9;
-	//int arrThread[arrThreadSize] = { 1,2,4,8,10,16,20,24,30 };
-	//std::ofstream OutputData;
-	//OutputData.open("OutputData.csv");
+	const int arrNumSize = 4;
+	int arrNums[arrNumSize] = { 100,1000,5000,10000 };
+	const int arrThreadSize = 9;
+	int arrThread[arrThreadSize] = { 1,2,4,8,10,16,20,24,30 };
+	std::ofstream OutputData;
+	OutputData.open("OutputData.csv");
 
-	//for (int k = 0; k < arrThreadSize; ++k) {
-	//	printf("\t%d\t", arrThread[k]);
-	//	OutputData << ';' << arrThread[k];
-	//}
+	for (int k = 0; k < arrThreadSize; ++k) {
+		printf("\t%d\t", arrThread[k]);
+		OutputData << ';' << arrThread[k];
+	}
 
-	//for (int i = 0; i < arrNumSize; ++i)
-	//{
-	//	printf("\n%d\t", arrNums[i]);
-	//	OutputData << '\n' << arrNums[i];
-	//	int** arrMulA = new int* [arrNums[i]];
-	//	int** arrMulB = new int* [arrNums[i]];
-	//	int** arrMulC = new int* [arrNums[i]];
-	//	for (int elem = 0; elem < arrNums[i]; ++elem) {
-	//		arrMulA[elem] = new int[arrNums[i]];
-	//		arrMulB[elem] = new int[arrNums[i]];
-	//		arrMulC[elem] = new int[arrNums[i]];
-	//	}
+	for (int i = 0; i < arrNumSize; ++i)
+	{
+		printf("\n%d\t", arrNums[i]);
+		OutputData << '\n' << arrNums[i];
+		int** arrMulA = new int* [arrNums[i]];
+		int** arrMulB = new int* [arrNums[i]];
+		int** arrMulC = new int* [arrNums[i]];
+		for (int elem = 0; elem < arrNums[i]; ++elem) {
+			arrMulA[elem] = new int[arrNums[i]];
+			arrMulB[elem] = new int[arrNums[i]];
+			arrMulC[elem] = new int[arrNums[i]];
+		}
 
-	//	FillArrays(arrMulA, arrMulB, arrNums[i]);
+		FillArrays(arrMulA, arrMulB, arrNums[i]);
 
-	//	for (int k = 0; k < arrThreadSize; ++k)
-	//	{
-	//		double arrTime[timeRepeat];
-	//		//åùå öèêë äëÿ ñðåäíåãî âðåìåíè 20 èòåðàöèé âçÿòü ñðåäíèå êâàðòèëè
-	//		for (int t = 0; t < timeRepeat; ++t) {
-	//			start = clock();
-	//			ParallelMul(arrMulA, arrMulB, arrMulC, arrNums[i], arrThread[k]);
-	//			end = clock();
-	//			double time = (double)(end - start) / CLOCKS_PER_SEC;
-	//			arrTime[t] = time;
-	//		}
-	//		quickSort(arrTime, timeRepeat);
-	//		double avgTime = 0;
-	//		GetAvgTime(arrTime, timeRepeat, avgTime);//ñðåäíåå âðåìÿ ïî ñðåäíèì êâàðòèëÿì 
+		for (int k = 0; k < arrThreadSize; ++k)
+		{
+			double arrTime[timeRepeat];
+			for (int t = 0; t < timeRepeat; ++t) {
+				start = clock();
+				ParallelMul(arrMulA, arrMulB, arrMulC, arrNums[i], arrThread[k]);
+				end = clock();
+				double time = (double)(end - start) / CLOCKS_PER_SEC;
+				arrTime[t] = time;
+			}
+			quickSort(arrTime, timeRepeat);
+			double avgTime = 0;
+			GetAvgTimeQuartile(arrTime, avgTime);//average quartiles is 5-15 elements of arrTime
 
-	//		printf("%f\t", avgTime);
-	//		OutputData << ';' << avgTime;
-	//	}
-	//	for (int del = 0; del < arrNums[i]; ++del) {
-	//		delete[] arrMulA[del];
-	//		delete[] arrMulB[del];
-	//		delete[] arrMulC[del];
-	//	}
-	//	delete[] arrMulA;
-	//	delete[] arrMulB;
-	//	delete[] arrMulC;
-	//}
+			printf("%f\t", avgTime);
+			OutputData << ';' << avgTime;
+		}
+		for (int del = 0; del < arrNums[i]; ++del) {
+			delete[] arrMulA[del];
+			delete[] arrMulB[del];
+			delete[] arrMulC[del];
+		}
+		delete[] arrMulA;
+		delete[] arrMulB;
+		delete[] arrMulC;
+	}
 
 	return 0;
 }
