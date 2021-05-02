@@ -1,4 +1,4 @@
-#include <stdio.h>
+п»ї#include <stdio.h>
 #include <omp.h>
 #include <cmath>
 #include <ctime>
@@ -11,15 +11,24 @@ struct Func {
 };
 
 void Task1ParallelFor(double** arr, long long N, int k, double& avg) {
-#pragma omp parallel for num_threads(k) 
-	for (long long i = 0; i < N; ++i) {
+	
+	double *arrSum = new double[k];
+#pragma omp parallel num_threads(k)
+	{
 		double sum = 0;
-		for (long long j = 0; j < N; ++j) {
+#pragma omp for 
+		for (long long ij = 0; ij < N * N; ij++)
+		{
+			long long i = ij / N;
+			long long j = ij % N;
 			arr[i][j] = sin(i) + cos(j);
 			sum += arr[i][j];
 		}
-		avg += sum;
+		arrSum[omp_get_thread_num()] = sum;
 	}
+	for (int i = 0; i < k; ++i)
+		avg += arrSum[i];
+	delete[] arrSum;
 	avg /= (N * N);
 }
 
@@ -88,7 +97,7 @@ void ParallelMul(int** arrMulA, int** arrMulB, int** arrMulC, int n, int numThre
 void FillArrays(int** arrMulA, int** arrMulB, int n) {
 	for (int i = 0; i < n; ++i)
 		for (int j = 0; j < n; ++j)
-			arrMulA[i][j] = arrMulB[i][j] = j;//без рандома
+			arrMulA[i][j] = arrMulB[i][j] = j;//no random
 }
 
 void quickSort(double arr[], int n) {
@@ -107,7 +116,7 @@ void quickSort(double arr[], int n) {
 	if (j > 0)quickSort(arr, j + 1);
 }
 
-void GetAvgTime(double arrTime[], int n, double& avgTime) {
+void GetAvgTimeQuartile(double arrTime[], double& avgTime) {
 	for (int s = 5; s < 15; ++s)
 		avgTime += arrTime[s];
 	avgTime /= 10;
@@ -188,7 +197,6 @@ int main() {
 		for (int k = 0; k < arrThreadSize; ++k)
 		{
 			double arrTime[timeRepeat];
-			//еще цикл для среднего времени 20 итераций взять средние квартили
 			for (int t = 0; t < timeRepeat; ++t) {
 				start = clock();
 				ParallelMul(arrMulA, arrMulB, arrMulC, arrNums[i], arrThread[k]);
@@ -198,7 +206,7 @@ int main() {
 			}
 			quickSort(arrTime, timeRepeat);
 			double avgTime = 0;
-			GetAvgTime(arrTime, timeRepeat,avgTime);//среднее время по средним квартилям 
+			GetAvgTimeQuartile(arrTime, avgTime);//average quartiles is 5-15 elements of arrTime
 
 			printf("%f\t", avgTime);
 			OutputData << ';' << avgTime;
